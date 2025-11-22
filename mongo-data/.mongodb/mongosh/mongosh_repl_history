@@ -1,0 +1,5 @@
+}).pretty()
+  isEnabled: true 
+  hotel: ObjectId("6921bb3f2242c6047af15457"),
+db.hotelrooms.find({ 
+db.hotels.find()

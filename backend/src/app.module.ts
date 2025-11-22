@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
+import { HotelsModule } from './hotels/hotels.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -12,6 +13,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     MongooseModule.forRoot(process.env.MONGO_URL ?? ''),
     UsersModule,
+    HotelsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
