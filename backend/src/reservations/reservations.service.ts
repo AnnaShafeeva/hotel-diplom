@@ -79,12 +79,9 @@ export class ReservationsService implements IReservationService {
       try {
         if (Types.ObjectId.isValid(filter.userId)) {
           query.userId = new Types.ObjectId(filter.userId);
-          console.log('VALID USER ID FILTER:', query.userId);
-        } else {
-          console.log('INVALID USER ID, SKIPPING FILTER:', filter.userId);
         }
       } catch (error) {
-        console.log('USER ID FILTER ERROR:', error);
+        console.log('Invalid userId, skipping filter');
       }
     }
 

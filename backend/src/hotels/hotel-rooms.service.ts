@@ -21,16 +21,14 @@ export class HotelRoomsService implements IHotelRoomService {
     console.log('CREATE ROOM - INPUT DATA:', data);
 
     try {
-      // ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ ОТЕЛЯ
       const hotelExists = await this.hotelModel.findById(data.hotelId);
       if (!hotelExists) {
         throw new NotFoundException(`Hotel with id ${data.hotelId} not found`);
       }
 
-      // СОЗДАЕМ ДАННЫЕ ДЛЯ НОМЕРА
       const roomData = {
         description: data.description,
-        hotel: new Types.ObjectId(data.hotelId), // ПРЕОБРАЗУЕМ В ObjectId
+        hotel: new Types.ObjectId(data.hotelId),
         images: data.images || [],
         isEnabled: data.isEnabled !== undefined ? data.isEnabled : true,
       };
@@ -68,14 +66,12 @@ export class HotelRoomsService implements IHotelRoomService {
 
     const { limit, offset, hotel, isEnabled } = params;
 
-    // ПРЕОБРАЗУЕМ hotel ИЗ СТРОКИ В ObjectId ДЛЯ ФИЛЬТРАЦИИ
     const filter: any = {
       hotel: new Types.ObjectId(hotel),
     };
 
     console.log('FILTER WITH ObjectId:', filter);
 
-    // ФИЛЬТРАЦИЯ isEnabled согласно ТЗ
     if (!userRole || userRole === 'client') {
       filter.isEnabled = true;
       console.log('Applied isEnabled=true filter for public access');

@@ -8,10 +8,14 @@ import {
   UsePipes,
   ValidationPipe,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { SearchUserParamsDto } from './dto/search-user.params';
+import { AdminGuard } from '../auth/guards/admin.guard';
+import { ManagerGuard } from '../auth/guards/manager.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller()
 export class UsersController {
@@ -31,6 +35,7 @@ export class UsersController {
   }
 
   @Post('/api/admin/users')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async adminCreate(@Body() dto: CreateUserDto) {
     const user = await this.usersService.create({
@@ -44,18 +49,21 @@ export class UsersController {
   }
 
   @Get('/api/admin/users')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   async listAdmin(@Query() query: SearchUserParamsDto) {
     const users = await this.usersService.findAll(query);
     return users.map(({ passwordHash, ...data }) => data);
   }
 
   @Get('/api/manager/users')
+  @UseGuards(JwtAuthGuard, ManagerGuard)
   async listManager(@Query() query: SearchUserParamsDto) {
     const users = await this.usersService.findAll(query);
     return users.map(({ passwordHash, role, ...data }) => data);
   }
 
   @Get('/api/admin/users/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   async getUser(@Param('id') id: string) {
     const user = await this.usersService.findById(id);
 

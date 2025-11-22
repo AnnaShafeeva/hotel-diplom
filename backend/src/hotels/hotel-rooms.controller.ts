@@ -10,11 +10,14 @@ import {
   ValidationPipe,
   Req,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { HotelRoomsService } from './hotel-rooms.service';
 import { SearchRoomsParams } from './dto/search-rooms.params';
 import { CreateHotelRoomDto } from './dto/create-hotel-room.dto';
 import { UpdateHotelRoomDto } from './dto/update-hotel-room.dto';
+import { AdminGuard } from '../auth/guards/admin.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller()
 export class HotelRoomsController {
@@ -23,7 +26,7 @@ export class HotelRoomsController {
   @Get('/api/common/hotel-rooms')
   @UsePipes(new ValidationPipe({ transform: true }))
   async list(@Query() query: SearchRoomsParams, @Req() req: any) {
-    const userRole = req.user?.role || null;
+    const userRole = req.user?.role;
 
     const rooms = await this.hotelRoomsService.search(query, userRole);
 
@@ -59,6 +62,7 @@ export class HotelRoomsController {
   }
 
   @Post('/api/admin/hotel-rooms')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async create(@Body() dto: CreateHotelRoomDto) {
     const room = await this.hotelRoomsService.create(dto);
@@ -78,6 +82,7 @@ export class HotelRoomsController {
   }
 
   @Put('/api/admin/hotel-rooms/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async update(@Param('id') id: string, @Body() dto: UpdateHotelRoomDto) {
     const room = await this.hotelRoomsService.update(id, dto);

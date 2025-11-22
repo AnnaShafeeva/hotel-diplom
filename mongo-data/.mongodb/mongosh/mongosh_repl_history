@@ -1,3 +1,4 @@
+db.users.find()
 }).pretty()
   isEnabled: true 
   hotel: ObjectId("6921bb3f2242c6047af15457"),
