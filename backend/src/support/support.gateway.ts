@@ -27,7 +27,6 @@ export class SupportGateway
     private jwtService: JwtService,
     private supportRequestService: SupportRequestService,
   ) {
-    // Подписываемся на события новых сообщений
     this.supportRequestService.subscribe((supportRequest, message) => {
       this.sendMessageToChat(supportRequest._id?.toString() || '', {
         id: message._id,

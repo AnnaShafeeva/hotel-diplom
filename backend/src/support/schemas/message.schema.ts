@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { PopulatedAuthor } from '../interfaces/author.interface';
 
 export type MessageDocument = Message & Document;
 
@@ -8,7 +9,7 @@ export class Message {
   _id?: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  author: Types.ObjectId;
+  author: Types.ObjectId | PopulatedAuthor;
 
   @Prop({ default: Date.now })
   sentAt: Date;

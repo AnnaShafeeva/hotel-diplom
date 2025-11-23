@@ -27,14 +27,12 @@ export class SupportRequestClientService
   async createSupportRequest(
     data: CreateSupportRequestDto,
   ): Promise<SupportRequest> {
-    // Создаем запрос поддержки
     const supportRequest = new this.supportRequestModel({
       user: new Types.ObjectId(data.user),
       isActive: true,
     });
     await supportRequest.save();
 
-    // Создаем первое сообщение
     const message = new this.messageModel({
       supportRequest: supportRequest._id,
       author: new Types.ObjectId(data.user),
@@ -47,11 +45,10 @@ export class SupportRequestClientService
   }
 
   async markMessagesAsRead(params: MarkMessagesAsReadDto): Promise<void> {
-    // Помечаем сообщения от сотрудников как прочитанные
     await this.messageModel.updateMany(
       {
         supportRequest: new Types.ObjectId(params.supportRequest),
-        author: { $ne: new Types.ObjectId(params.user) }, // не пользователь
+        author: { $ne: new Types.ObjectId(params.user) },
         readAt: null,
         sentAt: { $lte: params.createdBefore },
       },
@@ -68,7 +65,7 @@ export class SupportRequestClientService
     }
     return this.messageModel.countDocuments({
       supportRequest: new Types.ObjectId(supportRequest),
-      author: { $ne: request.user }, // не пользователь (сотрудники)
+      author: { $ne: request.user },
       readAt: null,
     });
   }

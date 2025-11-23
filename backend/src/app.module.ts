@@ -23,7 +23,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         signOptions: { expiresIn: '24h' },
       }),
       inject: [ConfigService],
-      global: true, // ← Важно для WebSocket!
+      global: true,
     }),
     UsersModule,
     HotelsModule,

@@ -6,7 +6,7 @@ export interface PopulatedAuthor {
   email?: string;
 }
 
-// export interface AuthorResponse {
-//   id: string;
-//   name: string;
-// }
+export interface AuthorResponse {
+  id: string;
+  name: string;
+}

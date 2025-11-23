@@ -13,6 +13,7 @@ import {
 import { Message, MessageDocument } from './schemas/message.schema';
 import { ID } from '../common/types/type';
 import { EventEmitter } from 'events';
+import { AuthorResponse, PopulatedAuthor } from './interfaces/author.interface';
 
 @Injectable()
 export class SupportRequestService implements ISupportRequestService {
@@ -64,13 +65,11 @@ export class SupportRequestService implements ISupportRequestService {
 
     const savedMessage = await message.save();
 
-    // Получаем полный объект SupportRequest для события
     const supportRequest = await this.supportRequestModel
       .findById(data.supportRequest)
       .populate('user')
       .exec();
 
-    // Отправляем событие о новом сообщении
     this.eventEmitter.emit('newMessage', supportRequest, savedMessage);
 
     return savedMessage;
@@ -83,9 +82,39 @@ export class SupportRequestService implements ISupportRequestService {
     }
     return this.messageModel
       .find({ supportRequest: new Types.ObjectId(supportRequest) })
-      .populate('author', 'name')
+      .populate<{ author: PopulatedAuthor }>('author', 'name email')
       .sort({ sentAt: 1 })
       .exec();
+  }
+
+  async getMessageWithAuthor(messageId: string): Promise<{
+    id: string;
+    createdAt: Date;
+    text: string;
+    readAt: Date | null;
+    author: AuthorResponse;
+  }> {
+    const message = await this.messageModel
+      .findById(messageId)
+      .populate<{ author: PopulatedAuthor }>('author', 'name email')
+      .exec();
+
+    if (!message) {
+      throw new NotFoundException('Сообщение не найдено');
+    }
+
+    const author = message.author;
+
+    return {
+      id: message._id.toString(),
+      createdAt: message.sentAt,
+      text: message.text,
+      readAt: message.readAt,
+      author: {
+        id: author._id.toString(),
+        name: author.name,
+      },
+    };
   }
 
   subscribe(

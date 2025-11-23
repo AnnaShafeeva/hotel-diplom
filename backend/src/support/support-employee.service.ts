@@ -29,11 +29,10 @@ export class SupportRequestEmployeeService
     );
     if (!request) return;
 
-    // Помечаем сообщения от пользователя как прочитанные
     await this.messageModel.updateMany(
       {
         supportRequest: new Types.ObjectId(params.supportRequest),
-        author: request.user, // именно пользователь, создавший запрос
+        author: request.user,
         readAt: null,
         sentAt: { $lte: params.createdBefore },
       },
@@ -50,7 +49,7 @@ export class SupportRequestEmployeeService
     }
     return this.messageModel.countDocuments({
       supportRequest: new Types.ObjectId(supportRequest),
-      author: request.user, // пользователь, создавший запрос
+      author: request.user,
       readAt: null,
     });
   }

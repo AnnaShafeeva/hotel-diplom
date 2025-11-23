@@ -50,7 +50,7 @@ export class SupportController {
       )) > 0;
 
     return {
-      id: request._id,
+      id: request._id?.toString() || '',
       createdAt: request.createdAt,
       isActive: request.isActive,
       hasNewMessages,
@@ -80,7 +80,7 @@ export class SupportController {
           )) > 0;
 
         return {
-          id: request._id,
+          id: request._id?.toString() || '',
           createdAt: request.createdAt,
           isActive: request.isActive,
           hasNewMessages,
@@ -109,7 +109,7 @@ export class SupportController {
           )) > 0;
 
         return {
-          id: request._id,
+          id: request._id?.toString() || '',
           createdAt: request.createdAt,
           isActive: request.isActive,
           hasNewMessages,
@@ -126,16 +126,20 @@ export class SupportController {
 
     const messages = await this.supportRequestService.getMessages(id);
 
-    return messages.map((message) => ({
-      id: message._id,
-      createdAt: message.sentAt,
-      text: message.text,
-      readAt: message.readAt,
-      author: {
-        id: (message as any).author._id,
-        name: (message as any).author.name,
-      },
-    }));
+    return messages.map((message) => {
+      const author = message.author as any;
+
+      return {
+        id: message._id?.toString() || '',
+        createdAt: message.sentAt,
+        text: message.text,
+        readAt: message.readAt || null,
+        author: {
+          id: author._id?.toString() || '',
+          name: author.name || 'Пользователь',
+        },
+      };
+    });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -154,10 +158,10 @@ export class SupportController {
     });
 
     const messageWithAuthor = {
-      id: message._id,
+      id: message._id?.toString() || '',
       createdAt: message.sentAt,
       text: message.text,
-      readAt: message.readAt,
+      readAt: message.readAt || null,
       author: {
         id: req.user.id,
         name: req.user.name,
@@ -203,7 +207,6 @@ export class SupportController {
     return { success: true };
   }
 
-  // ► ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ checkChatAccess
   private async checkChatAccess(chatId: string, user: any): Promise<void> {
     const chat = await this.supportRequestService.findById(chatId);
 
@@ -219,7 +222,5 @@ export class SupportController {
         throw new ForbiddenException('Доступ запрещён');
       }
     }
-
-    // менеджерам доступ разрешён ко всем чатам
   }
 }
