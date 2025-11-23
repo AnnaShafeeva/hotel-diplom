@@ -1,0 +1,225 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+  ValidationPipe,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
+import { SupportRequestService } from './support-request.service';
+import { SupportRequestClientService } from './support-client.service';
+import { SupportRequestEmployeeService } from './support-employee.service';
+import { SupportGateway } from './support.gateway';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ClientGuard } from '../auth/guards/client.guard';
+import { ManagerGuard } from '../auth/guards/manager.guard';
+import { CreateSupportRequestDto } from './dto/create-support-request.dto';
+import { SendMessageDto } from './dto/send-message.dto';
+import { MarkMessagesReadDto } from './dto/mark-messages-read.dto';
+import { GetSupportRequestsDto } from './dto/get-support-requests.dto';
+
+@Controller('api')
+export class SupportController {
+  constructor(
+    private supportRequestService: SupportRequestService,
+    private supportClientService: SupportRequestClientService,
+    private supportEmployeeService: SupportRequestEmployeeService,
+    private supportGateway: SupportGateway,
+  ) {}
+
+  @UseGuards(JwtAuthGuard, ClientGuard)
+  @Post('client/support-requests')
+  async createRequest(
+    @Body(ValidationPipe) body: CreateSupportRequestDto,
+    @Request() req,
+  ) {
+    const request = await this.supportClientService.createSupportRequest({
+      user: req.user.id,
+      text: body.text,
+    });
+
+    const hasNewMessages =
+      (await this.supportClientService.getUnreadCount(
+        request._id?.toString() || '',
+      )) > 0;
+
+    return {
+      id: request._id,
+      createdAt: request.createdAt,
+      isActive: request.isActive,
+      hasNewMessages,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard, ClientGuard)
+  @Get('client/support-requests')
+  async getClientRequests(
+    @Query() query: GetSupportRequestsDto,
+    @Request() req,
+  ) {
+    const isActive = query.isActive ? query.isActive === 'true' : undefined;
+
+    const requests = await this.supportRequestService.findSupportRequests({
+      user: req.user.id,
+      isActive: isActive,
+      limit: query.limit ? parseInt(query.limit) : undefined,
+      offset: query.offset ? parseInt(query.offset) : undefined,
+    });
+
+    return Promise.all(
+      requests.map(async (request) => {
+        const hasNewMessages =
+          (await this.supportClientService.getUnreadCount(
+            request._id?.toString() || '',
+          )) > 0;
+
+        return {
+          id: request._id,
+          createdAt: request.createdAt,
+          isActive: request.isActive,
+          hasNewMessages,
+        };
+      }),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, ManagerGuard)
+  @Get('manager/support-requests')
+  async getManagerRequests(@Query() query: GetSupportRequestsDto) {
+    const isActive = query.isActive ? query.isActive === 'true' : undefined;
+
+    const requests = await this.supportRequestService.findSupportRequests({
+      user: null,
+      isActive: isActive,
+      limit: query.limit ? parseInt(query.limit) : undefined,
+      offset: query.offset ? parseInt(query.offset) : undefined,
+    });
+
+    return Promise.all(
+      requests.map(async (request) => {
+        const hasNewMessages =
+          (await this.supportEmployeeService.getUnreadCount(
+            request._id?.toString() || '',
+          )) > 0;
+
+        return {
+          id: request._id,
+          createdAt: request.createdAt,
+          isActive: request.isActive,
+          hasNewMessages,
+          client: request.user,
+        };
+      }),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('common/support-requests/:id/messages')
+  async getMessages(@Param('id') id: string, @Request() req) {
+    await this.checkChatAccess(id, req.user);
+
+    const messages = await this.supportRequestService.getMessages(id);
+
+    return messages.map((message) => ({
+      id: message._id,
+      createdAt: message.sentAt,
+      text: message.text,
+      readAt: message.readAt,
+      author: {
+        id: (message as any).author._id,
+        name: (message as any).author.name,
+      },
+    }));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('common/support-requests/:id/messages')
+  async sendMessage(
+    @Param('id') id: string,
+    @Body(ValidationPipe) body: SendMessageDto,
+    @Request() req,
+  ) {
+    await this.checkChatAccess(id, req.user);
+
+    const message = await this.supportRequestService.sendMessage({
+      supportRequest: id,
+      author: req.user.id,
+      text: body.text,
+    });
+
+    const messageWithAuthor = {
+      id: message._id,
+      createdAt: message.sentAt,
+      text: message.text,
+      readAt: message.readAt,
+      author: {
+        id: req.user.id,
+        name: req.user.name,
+      },
+    };
+
+    this.supportGateway.sendMessageToChat(id, messageWithAuthor);
+
+    return messageWithAuthor;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('common/support-requests/:id/messages/read')
+  async markAsRead(
+    @Param('id') id: string,
+    @Body(ValidationPipe) body: MarkMessagesReadDto,
+    @Request() req,
+  ) {
+    await this.checkChatAccess(id, req.user);
+    const createdBefore = new Date(body.createdBefore);
+
+    if (req.user.role === 'client') {
+      await this.supportClientService.markMessagesAsRead({
+        user: req.user.id,
+        supportRequest: id,
+        createdBefore,
+      });
+    } else if (req.user.role === 'manager') {
+      await this.supportEmployeeService.markMessagesAsRead({
+        user: req.user.id,
+        supportRequest: id,
+        createdBefore,
+      });
+    }
+
+    return { success: true };
+  }
+
+  @UseGuards(JwtAuthGuard, ManagerGuard)
+  @Delete('manager/support-requests/:id')
+  async closeRequest(@Param('id') id: string) {
+    await this.supportEmployeeService.closeRequest(id);
+    return { success: true };
+  }
+
+  // ► ПОЛНОСТЬЮ ИСПРАВЛЕННЫЙ checkChatAccess
+  private async checkChatAccess(chatId: string, user: any): Promise<void> {
+    const chat = await this.supportRequestService.findById(chatId);
+
+    if (!chat) {
+      throw new NotFoundException('Чат не найден');
+    }
+
+    if (user.role === 'client') {
+      if (!chat.user) {
+        throw new ForbiddenException('Некорректные данные чата');
+      }
+      if (chat.user._id.toString() !== user.id) {
+        throw new ForbiddenException('Доступ запрещён');
+      }
+    }
+
+    // менеджерам доступ разрешён ко всем чатам
+  }
+}
