@@ -20,4 +20,5 @@ export class SupportRequest {
   isActive: boolean;
 }
 
-export const SupportRequestSchema = SchemaFactory.createForClass(SupportRequest);
+export const SupportRequestSchema =
+  SchemaFactory.createForClass(SupportRequest);

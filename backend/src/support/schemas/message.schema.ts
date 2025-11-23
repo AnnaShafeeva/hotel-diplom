@@ -19,6 +19,9 @@ export class Message {
 
   @Prop()
   readAt: Date;
+
+  @Prop({ type: Types.ObjectId, ref: 'SupportRequest', required: true })
+  supportRequest: Types.ObjectId;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

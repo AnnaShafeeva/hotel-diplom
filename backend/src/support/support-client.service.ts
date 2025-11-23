@@ -30,6 +30,7 @@ export class SupportRequestClientService
     const supportRequest = new this.supportRequestModel({
       user: new Types.ObjectId(data.user),
       isActive: true,
+      messages: [],
     });
     await supportRequest.save();
 
@@ -40,6 +41,12 @@ export class SupportRequestClientService
       sentAt: new Date(),
     });
     await message.save();
+
+    await this.supportRequestModel.findByIdAndUpdate(
+      supportRequest._id,
+      { $push: { messages: message._id } },
+      { new: true },
+    );
 
     return supportRequest;
   }
