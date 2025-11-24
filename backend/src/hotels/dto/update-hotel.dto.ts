@@ -8,6 +8,6 @@ export class UpdateHotelDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(10, { message: 'Описание должно быть не менее 10 символов' })
+  @MinLength(100, { message: 'Описание должно быть не менее 100 символов' })
   description?: string;
 }

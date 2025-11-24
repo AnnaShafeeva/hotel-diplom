@@ -1,15 +1,21 @@
-import { IsOptional, IsBooleanString, IsNumberString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsOptional, IsBoolean, IsNumber, Min } from 'class-validator';
 
 export class GetSupportRequestsDto {
   @IsOptional()
-  @IsBooleanString()
-  isActive?: string;
+  @IsBoolean()
+  @Type(() => Boolean)
+  isActive?: boolean;
 
   @IsOptional()
-  @IsNumberString()
-  limit?: string;
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  limit?: number;
 
   @IsOptional()
-  @IsNumberString()
-  offset?: string;
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  offset?: number;
 }

@@ -9,10 +9,12 @@ import {
 
 export class CreateUserDto {
   @IsEmail()
+  @IsNotEmpty()
   email: string;
 
   @IsString()
   @MinLength(6)
+  @IsNotEmpty()
   password: string;
 
   @IsString()
@@ -24,6 +26,7 @@ export class CreateUserDto {
   contactPhone?: string;
 
   @IsOptional()
+  @IsString()
   @IsIn(['client', 'admin', 'manager'])
   role?: 'client' | 'admin' | 'manager';
 }
