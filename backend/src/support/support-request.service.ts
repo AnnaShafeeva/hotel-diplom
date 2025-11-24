@@ -44,8 +44,11 @@ export class SupportRequestService implements ISupportRequestService {
       .populate('user', 'name email contactPhone')
       .sort({ createdAt: -1 });
 
-    if (params.limit) {
-      query = query.limit(params.limit).skip(params.offset || 0);
+    if (params.limit !== undefined) {
+      query = query.limit(params.limit);
+    }
+    if (params.offset !== undefined) {
+      query = query.skip(params.offset);
     }
 
     return query.exec();

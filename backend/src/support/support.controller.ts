@@ -63,11 +63,21 @@ export class SupportController {
     @Query() query: GetSupportRequestsDto,
     @Request() req,
   ) {
+    const isActive =
+      query.isActive === 'false'
+        ? false
+        : query.isActive === 'true'
+          ? true
+          : undefined;
+
+    const limit = query.limit ? parseInt(query.limit) : undefined;
+    const offset = query.offset ? parseInt(query.offset) : undefined;
+
     const requests = await this.supportRequestService.findSupportRequests({
       user: req.user.id,
-      isActive: query.isActive,
-      limit: query.limit,
-      offset: query.offset,
+      isActive: isActive,
+      limit: limit,
+      offset: offset,
     });
 
     return Promise.all(
@@ -90,11 +100,21 @@ export class SupportController {
   @UseGuards(JwtAuthGuard, ManagerGuard)
   @Get('manager/support-requests')
   async getManagerRequests(@Query() query: GetSupportRequestsDto) {
+    const isActive =
+      query.isActive === 'false'
+        ? false
+        : query.isActive === 'true'
+          ? true
+          : undefined;
+
+    const limit = query.limit ? parseInt(query.limit) : undefined;
+    const offset = query.offset ? parseInt(query.offset) : undefined;
+
     const requests = await this.supportRequestService.findSupportRequests({
       user: null,
-      isActive: query.isActive,
-      limit: query.limit,
-      offset: query.offset,
+      isActive: isActive,
+      limit: limit,
+      offset: offset,
     });
 
     return Promise.all(
