@@ -1,3 +1,4 @@
+db.users.find()
 db.getCollection('messages').find().pretty()
 db.getCollection('messages').find({supportRequest: ObjectId("69230e99faca41a4af1f82c4")})
 db.getCollection('supportrequests').find({_id: ObjectId("69230e99faca41a4af1f82c4")})

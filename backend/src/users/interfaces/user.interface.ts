@@ -1,4 +1,4 @@
-export type ID = string;
+import { ID } from '../../common/types/type';
 
 export interface User {
   _id?: ID;

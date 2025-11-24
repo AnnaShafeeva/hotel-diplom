@@ -35,7 +35,7 @@ export class ReservationsService implements IReservationService {
 
   async addReservation(data: ReservationDto): Promise<Reservation> {
     const isAvailable = await this.isRoomAvailable(
-      data.roomId,
+      data.roomId.toString(),
       data.dateStart,
       data.dateEnd,
     );
@@ -45,7 +45,7 @@ export class ReservationsService implements IReservationService {
       );
     }
 
-    const room = await this.hotelRoomModel.findById(data.roomId);
+    const room = await this.hotelRoomModel.findById(data.roomId.toString());
     if (!room || !room.isEnabled) {
       throw new BadRequestException('Room not found or disabled');
     }

@@ -1,5 +1,5 @@
 import { Reservation } from '../schemas/reservation.schema';
-import { ID } from '../../users/interfaces/user.interface';
+import { ID } from '../../common/types/type';
 
 export interface ReservationDto {
   userId: ID;

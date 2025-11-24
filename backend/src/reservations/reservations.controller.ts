@@ -26,7 +26,7 @@ export class ReservationsController {
   @UseGuards(JwtAuthGuard, ClientGuard)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async create(@Body() dto: CreateReservationDto, @Req() req: any) {
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const room = await this.reservationsService.getRoomById(dto.hotelRoom);
     const hotelId = (room.hotel as any)._id.toString();
@@ -61,7 +61,7 @@ export class ReservationsController {
   @Get('/api/client/reservations')
   @UseGuards(JwtAuthGuard, ClientGuard)
   async getUserReservations(@Req() req: any) {
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const reservations = await this.reservationsService.getReservations({
       userId,
@@ -87,7 +87,7 @@ export class ReservationsController {
     const reservation =
       await this.reservationsService.getReservationWithDetails(id);
 
-    if (reservation.userId.toString() !== req.user.userId) {
+    if (reservation.userId.toString() !== req.user.id) {
       throw new ForbiddenException('You can only cancel your own reservations');
     }
 
