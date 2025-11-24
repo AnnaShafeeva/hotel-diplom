@@ -19,7 +19,4 @@ export class UpdateHotelRoomDto {
   @IsOptional()
   @IsBoolean()
   isEnabled?: boolean;
-
-  @IsOptional()
-  images?: string[];
 }

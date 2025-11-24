@@ -7,6 +7,7 @@ import {
   IHotelRoomService,
   SearchRoomsParams,
 } from './interfaces/hotel-room.interface';
+import { ProcessedImage } from './file-upload.service';
 
 @Injectable()
 export class HotelRoomsService implements IHotelRoomService {
@@ -26,16 +27,18 @@ export class HotelRoomsService implements IHotelRoomService {
         throw new NotFoundException(`Hotel with id ${data.hotelId} not found`);
       }
 
+      const imageUrls = data.images
+        ? data.images.map((img: ProcessedImage) => img.main.replace(/^\.\/uploads/, '/uploads'))
+        : [];
+
       const roomData = {
         description: data.description,
         hotel: new Types.ObjectId(data.hotelId),
-        images: data.images || [],
+        images: imageUrls,
         isEnabled: data.isEnabled !== undefined ? data.isEnabled : true,
       };
 
       console.log('ROOM DATA FOR CREATION:', roomData);
-      console.log('Hotel ObjectId:', roomData.hotel);
-      console.log('Hotel ObjectId string:', roomData.hotel.toString());
 
       const room = await this.hotelRoomModel.create(roomData);
       console.log('ROOM CREATED SUCCESSFULLY:', room);
@@ -43,7 +46,6 @@ export class HotelRoomsService implements IHotelRoomService {
       return room;
     } catch (error) {
       console.error('CREATE ROOM ERROR:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
       throw error;
     }
   }
@@ -100,6 +102,12 @@ export class HotelRoomsService implements IHotelRoomService {
     if (data.hotelId) {
       updateData.hotel = new Types.ObjectId(data.hotelId);
       delete updateData.hotelId;
+    }
+
+    if (updateData.images && Array.isArray(updateData.images)) {
+      updateData.images = updateData.images.map((img: any) =>
+        typeof img === 'string' ? img : img.main,
+      );
     }
 
     const room = await this.hotelRoomModel

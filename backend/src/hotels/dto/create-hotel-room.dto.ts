@@ -16,9 +16,6 @@ export class CreateHotelRoomDto {
   hotelId: string;
 
   @IsOptional()
-  images?: string[];
-
-  @IsOptional()
   @IsBoolean()
   isEnabled?: boolean;
 }

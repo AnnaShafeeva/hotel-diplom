@@ -6,6 +6,7 @@ import { HotelsController } from './hotels.controller';
 import { HotelRoomsController } from './hotel-rooms.controller';
 import { Hotel, HotelSchema } from './schemas/hotel.schema';
 import { HotelRoom, HotelRoomSchema } from './schemas/hotel-room.schema';
+import { FileUploadService } from './file-upload.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { HotelRoom, HotelRoomSchema } from './schemas/hotel-room.schema';
     ]),
   ],
   controllers: [HotelsController, HotelRoomsController],
-  providers: [HotelsService, HotelRoomsService],
-  exports: [HotelsService, HotelRoomsService],
+  providers: [HotelsService, HotelRoomsService, FileUploadService],
+  exports: [HotelsService, HotelRoomsService, FileUploadService],
 })
 export class HotelsModule {}
