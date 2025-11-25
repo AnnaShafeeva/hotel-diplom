@@ -68,6 +68,7 @@ export class ReservationsController {
     });
 
     return reservations.map((reservation) => ({
+      id: reservation._id?.toString(),
       startDate: reservation.dateStart.toISOString(),
       endDate: reservation.dateEnd.toISOString(),
       hotelRoom: {
@@ -103,6 +104,7 @@ export class ReservationsController {
     });
 
     return reservations.map((reservation) => ({
+      id: reservation._id?.toString(),
       startDate: reservation.dateStart.toISOString(),
       endDate: reservation.dateEnd.toISOString(),
       hotelRoom: {

@@ -10,7 +10,6 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { LoginDto } from './dto/login.dto';
-import { AuthenticatedGuard } from './guards/authenticated.guard';
 
 @Controller('api/auth')
 export class AuthController {
@@ -24,13 +23,7 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(AuthenticatedGuard)
-  async logout(@Req() req: any) {
-    req.logout((err) => {
-      if (err) {
-        throw err;
-      }
-    });
+  logout() {
     return { message: 'Logged out successfully' };
   }
 }
