@@ -59,10 +59,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <Button
                       color="inherit"
                       component={Link}
-                      to="/add-hotel"
-                      variant={location.pathname === '/add-hotel' ? 'outlined' : 'text'}
+                      to="/admin/hotels"
+                      variant={location.pathname.startsWith('/admin/hotels') ? 'outlined' : 'text'}
                     >
-                      Добавить гостиницу
+                      Управление отелями
                     </Button>
                     <Button
                       color="inherit"

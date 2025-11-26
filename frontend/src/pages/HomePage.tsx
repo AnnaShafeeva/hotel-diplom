@@ -20,7 +20,7 @@ const HomePage: React.FC = () => {
         <Typography variant="h6" component="p" gutterBottom align="center" color="text.secondary">
           Найдите идеальный отель для вашего отдыха
         </Typography>
-        
+
         {isAuthenticated ? (
           <Paper elevation={2} sx={{ p: 4, mt: 4, textAlign: 'center' }}>
             <Typography variant="h4" component="h2" gutterBottom color="primary">

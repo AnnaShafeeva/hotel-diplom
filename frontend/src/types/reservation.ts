@@ -26,3 +26,22 @@ export interface ReservationSearchOptions {
   dateStart?: string;
   dateEnd?: string;
 }
+
+export interface CreateReservationData {
+  hotelRoom: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface ReservationResponse {
+  startDate: string;
+  endDate: string;
+  hotelRoom: {
+    description: string;
+    images: string[];
+  };
+  hotel: {
+    title: string;
+    description: string;
+  };
+}

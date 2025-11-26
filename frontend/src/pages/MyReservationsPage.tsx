@@ -102,10 +102,10 @@ const MyReservationsPage: React.FC = () => {
             <Typography variant="h6" color="text.secondary">
               У вас нет активных бронирований
             </Typography>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               sx={{ mt: 2 }}
-              href="/search" 
+              href="/search"
             >
               Найти отель
             </Button>

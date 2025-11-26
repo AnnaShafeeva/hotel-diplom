@@ -19,7 +19,7 @@ const LoginPage: React.FC = () => {
     email: '',
     password: '',
   });
-  
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -60,13 +60,13 @@ const LoginPage: React.FC = () => {
           <Typography component="h1" variant="h4" align="center" gutterBottom>
             Вход в систему
           </Typography>
-          
+
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
-          
+
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
             <TextField
               margin="normal"

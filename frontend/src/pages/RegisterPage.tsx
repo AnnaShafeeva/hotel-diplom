@@ -21,7 +21,7 @@ const RegisterPage: React.FC = () => {
     name: '',
     contactPhone: '',
   });
-  
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -64,13 +64,13 @@ const RegisterPage: React.FC = () => {
           <Typography component="h1" variant="h4" align="center" gutterBottom>
             Регистрация
           </Typography>
-          
+
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
-          
+
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
             <TextField
               margin="normal"

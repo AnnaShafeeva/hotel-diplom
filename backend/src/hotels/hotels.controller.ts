@@ -33,6 +33,8 @@ export class HotelsController {
       id: hotel._id.toString(),
       title: hotel.title,
       description: hotel.description,
+      createdAt: hotel.createdAt,
+      updatedAt: hotel.updatedAt,
     };
   }
 
@@ -45,6 +47,8 @@ export class HotelsController {
       id: hotel._id!.toString(),
       title: hotel.title,
       description: hotel.description,
+      createdAt: hotel.createdAt,
+      updatedAt: hotel.updatedAt,
     }));
   }
 

@@ -18,6 +18,13 @@ export interface HotelRoom {
   };
 }
 
+export interface UpdateHotelRoomData {
+  description?: string;
+  hotelId?: string;
+  isEnabled?: boolean;
+  images?: (string | File)[];
+}
+
 export interface Hotel {
   id: string;
   title: string;
