@@ -41,7 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               to="/"
               variant={location.pathname === '/' ? 'outlined' : 'text'}
             >
-              Все гостиницы
+              Главная
             </Button>
             <Button
               color="inherit"
