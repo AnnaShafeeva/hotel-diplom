@@ -1,6 +1,6 @@
 import {
   IsBoolean,
-  IsNotEmpty,
+  IsDateString,
   IsNumber,
   IsOptional,
   IsString,
@@ -20,11 +20,19 @@ export class SearchRoomsParams {
   offset: number;
 
   @IsString()
-  @IsNotEmpty()
-  hotel: string;
+  @IsOptional()
+  hotel?: string;
 
   @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   isEnabled?: boolean;
+
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
 }

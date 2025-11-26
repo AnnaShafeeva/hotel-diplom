@@ -28,7 +28,9 @@ export class HotelRoomsService implements IHotelRoomService {
       }
 
       const imageUrls = data.images
-        ? data.images.map((img: ProcessedImage) => img.main.replace(/^\.\/uploads/, '/uploads'))
+        ? data.images.map((img: ProcessedImage) =>
+            img.main.replace(/^\.\/uploads/, '/uploads'),
+          )
         : [];
 
       const roomData = {
@@ -66,13 +68,16 @@ export class HotelRoomsService implements IHotelRoomService {
   ): Promise<HotelRoom[]> {
     console.log('SEARCH PARAMS:', params);
 
-    const { limit, offset, hotel, isEnabled } = params;
+    const { limit, offset, hotel, isEnabled, startDate, endDate } = params;
 
-    const filter: any = {
-      hotel: new Types.ObjectId(hotel),
-    };
+    const filter: any = {};
 
-    console.log('FILTER WITH ObjectId:', filter);
+    if (hotel) {
+      filter.hotel = new Types.ObjectId(hotel);
+      console.log('Applied hotel filter:', hotel);
+    }
+
+    console.log('FILTER:', filter);
 
     if (!userRole || userRole === 'client') {
       filter.isEnabled = true;
@@ -93,6 +98,10 @@ export class HotelRoomsService implements IHotelRoomService {
 
     console.log('FOUND ROOMS COUNT:', rooms.length);
 
+    if (startDate && endDate) {
+      console.log('Date filter applied:', { startDate, endDate });
+      console.log('Date filtering not implemented yet, returning all rooms');
+    }
     return rooms.filter((room) => room._id != null);
   }
 

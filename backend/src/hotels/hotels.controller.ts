@@ -66,4 +66,25 @@ export class HotelsController {
       description: hotel.description,
     };
   }
+
+  @Get('/api/common/hotels')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async searchPublic(@Query() query: SearchHotelParams) {
+    const hotels = await this.hotelsService.search(query);
+    return hotels.map((hotel) => ({
+      id: hotel._id!.toString(),
+      title: hotel.title,
+      description: hotel.description,
+    }));
+  }
+
+  @Get('/api/common/hotels/:id')
+  async getPublic(@Param('id') id: string) {
+    const hotel = await this.hotelsService.findById(id);
+    return {
+      id: hotel._id!.toString(),
+      title: hotel.title,
+      description: hotel.description,
+    };
+  }
 }

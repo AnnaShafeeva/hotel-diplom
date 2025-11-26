@@ -3,8 +3,10 @@ import { HotelRoom } from '../schemas/hotel-room.schema';
 export interface SearchRoomsParams {
   limit: number;
   offset: number;
-  hotel: string;
+  hotel?: string;
   isEnabled?: boolean;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface IHotelRoomService {
