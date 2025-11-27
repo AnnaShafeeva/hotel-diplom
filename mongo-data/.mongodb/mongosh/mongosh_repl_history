@@ -1,3 +1,51 @@
+})
+  updatedAt: new Date()
+  createdAt: new Date(),
+  role: "admin",
+  contactPhone: "+79990000000",
+  name: "Администратор", 
+  passwordHash: "$2b$10$K6hUeOaV9U2H6pZb5q3rE.XzW8v9YQ1aM2nC7dL4gS5tR3vB1nN2C",
+  email: "ad@example.com",
+db.users.insertOne({
+})
+  updatedAt: new Date()
+  createdAt: new Date(),
+  role: "admin",
+  contactPhone: "+79990000000",
+  name: "Администратор", 
+  passwordHash: "$2b$10$K6hUeOaV9U2H6pZb5q3rE.XzW8v9YQ1aM2nC7dL4gS5tR3vB1nN2C",
+  email: "admin103@example.com",
+db.users.insertOne({
+})
+  updatedAt: new Date()
+  createdAt: new Date(),
+  role: "admin",
+  contactPhone: "+79990000000",
+  name: "Администратор",
+  passwordHash: "$2a$10$8A5Gyh6g5rsF5.Kbv2kD0.Lt.CN.xzqg/.8w/.t/q.5tALQ1Lk.K", 
+  email: "admin102@example.com",
+db.users.insertOne({
+})
+  updatedAt: new Date()
+  createdAt: new Date(),
+  role: "admin",
+  contactPhone: "+79990000000",
+  name: "Администратор", 
+  passwordHash: "$2a$10$hashed_password_here", 
+  email: "admin101@example.com",
+db.users.insertOne({
+})
+  updatedAt: new Date()
+  createdAt: new Date(),
+  role: "admin",
+  contactPhone: "+79990000000",
+  name: "Администратор", 
+  passwordHash: "$2a$10$hashed_password_here", # хеш пароля "admin123"
+  email: "admin@example.com",
+db.users.insertOne({
+show collections
+use hotel-app
+show dbs
 db.users.find()
 db.getCollection('messages').find().pretty()
 db.getCollection('messages').find({supportRequest: ObjectId("69230e99faca41a4af1f82c4")})

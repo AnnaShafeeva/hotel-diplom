@@ -38,10 +38,12 @@ const SearchPage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<HotelRoom[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const [pagination, setPagination] = useState({
     limit: 10,
     offset: 0,
-    total: 0
+    currentPage: 1,
+    hasMore: true
   });
 
   useEffect(() => {
@@ -101,8 +103,17 @@ const SearchPage: React.FC = () => {
       }
 
       const rooms = await hotelService.searchRooms(apiParams);
+
       setSearchResults(rooms);
-      setPagination(prev => ({ ...prev, offset: newOffset }));
+
+      const hasMore = rooms.length === pagination.limit;
+
+      setPagination(prev => ({
+        ...prev,
+        offset: newOffset,
+        currentPage: Math.floor(newOffset / prev.limit) + 1,
+        hasMore
+      }));
 
     } catch (err: any) {
       setError(err.response?.data?.message || 'Ошибка при поиске отелей');
@@ -125,12 +136,15 @@ const SearchPage: React.FC = () => {
   const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
     const newOffset = (page - 1) * pagination.limit;
     handleSearch(newOffset);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const formatDate = (date: Dayjs | null) => {
     return date ? date.format('DD.MM.YYYY') : '';
   };
 
+  const maxPages = pagination.hasMore ? pagination.currentPage + 1 : pagination.currentPage;
+  
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Breadcrumbs sx={{ mb: 3 }}>
@@ -152,11 +166,7 @@ const SearchPage: React.FC = () => {
               getOptionLabel={(option) => option.title}
               value={searchParams.hotel}
               onChange={(event, newValue) => {
-                setSearchParams(prev => ({
-                  ...prev,
-                  hotel: newValue
-                }));
-
+                setSearchParams(prev => ({ ...prev, hotel: newValue }));
               }}
               sx={{
                 minWidth: 250,
@@ -165,24 +175,14 @@ const SearchPage: React.FC = () => {
                 }
               }}
               renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Выберите гостиницу"
-                  placeholder="Начните вводить название..."
-                  variant="outlined"
-                />
+                <TextField {...params} label="Выберите гостиницу" variant="outlined" />
               )}
               loading={hotelsLoading}
               renderOption={(props, option) => (
-                <MenuItem {...props} key={option.id} >
-                  <Box>
-                    <Typography variant="body1">
-                      {option.title}
-                    </Typography>
-                  </Box>
+                <MenuItem {...props} key={option.id}>
+                  <Typography variant="body1">{option.title}</Typography>
                 </MenuItem>
               )}
-              noOptionsText="Отели не найдены"
             />
           </Grid>
 
@@ -190,16 +190,8 @@ const SearchPage: React.FC = () => {
             <DatePicker
               label="Заезд"
               value={searchParams.startDate}
-              onChange={(date) => setSearchParams(prev => ({
-                ...prev,
-                startDate: date
-              }))}
-              slotProps={{
-                textField: {
-                  fullWidth: true,
-                  variant: "outlined"
-                }
-              }}
+              onChange={(date) => setSearchParams(prev => ({ ...prev, startDate: date }))}
+              slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
             />
           </Grid>
 
@@ -207,16 +199,8 @@ const SearchPage: React.FC = () => {
             <DatePicker
               label="Выезд"
               value={searchParams.endDate}
-              onChange={(date) => setSearchParams(prev => ({
-                ...prev,
-                endDate: date
-              }))}
-              slotProps={{
-                textField: {
-                  fullWidth: true,
-                  variant: "outlined"
-                }
-              }}
+              onChange={(date) => setSearchParams(prev => ({ ...prev, endDate: date }))}
+              slotProps={{ textField: { fullWidth: true, variant: "outlined" } }}
             />
           </Grid>
 
@@ -234,39 +218,23 @@ const SearchPage: React.FC = () => {
             </Button>
           </Grid>
         </Grid>
-
-        <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-          {(searchParams.startDate || searchParams.endDate) && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CalendarToday fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary">
-                {formatDate(searchParams.startDate)} - {formatDate(searchParams.endDate)}
-              </Typography>
-            </Box>
-          )}
-          {searchParams.hotel && (
-            <Chip
-              label={`Отель: ${searchParams.hotel.title}`}
-              variant="outlined"
-              size="small"
-              onDelete={() => setSearchParams(prev => ({ ...prev, hotel: null }))}
-            />
-          )}
-        </Box>
       </Paper>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       <Box>
         {searchResults.length > 0 && (
-          <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
-            Найдено номеров: {searchResults.length}
-            {searchParams.hotel && ` в отеле "${searchParams.hotel.title}"`}
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h5">
+              Найдено номеров: {searchResults.length}
+              {searchParams.hotel && ` в отеле "${searchParams.hotel.title}"`}
+            </Typography>
+            {maxPages > 1 && (
+              <Typography variant="body2" color="text.secondary">
+                Страница {pagination.currentPage}
+              </Typography>
+            )}
+          </Box>
         )}
 
         {loading ? (
@@ -282,12 +250,6 @@ const SearchPage: React.FC = () => {
                 : 'Введите даты заезда и выезда для поиска номеров'
               }
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {searchParams.hotel
-                ? 'Попробуйте изменить даты или выбрать другой отель'
-                : 'Измените параметры поиска или попробуйте другие даты'
-              }
-            </Typography>
           </Paper>
         ) : (
           <>
@@ -301,52 +263,21 @@ const SearchPage: React.FC = () => {
                         sx={{ width: 300 }}
                         image={getImageUrl(room.images[0])}
                         alt={room.hotel.title}
-                        onError={(e) => {
-                          console.error('Image load error for:', room.images[0]);
-                        }}
                       />
                     ) : (
-                      <Box
-                        sx={{
-                          width: 300,
-                          bgcolor: 'grey.200',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
+                      <Box sx={{ width: 300, bgcolor: 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Hotel sx={{ fontSize: 48, color: 'grey.400' }} />
                       </Box>
                     )}
                     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                       <CardContent sx={{ flex: '1 0 auto' }}>
-                        <Typography variant="h6" gutterBottom>
-                          {room.hotel.title}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            mb: 2,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden'
-                          }}
-                        >
+                        <Typography variant="h6" gutterBottom>{room.hotel.title}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                           {room.description || 'Описание отсутствует'}
                         </Typography>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Chip
-                            label="Доступно для бронирования"
-                            color="success"
-                            size="small"
-                          />
-                          <Button
-                            variant="contained"
-                            size="small"
-                            onClick={() => handleViewDetails(room.id)}
-                          >
+                          <Chip label="Доступно для бронирования" color="success" size="small" />
+                          <Button variant="contained" size="small" onClick={() => handleViewDetails(room.id)}>
                             Подробнее
                           </Button>
                         </Box>
@@ -357,13 +288,14 @@ const SearchPage: React.FC = () => {
               ))}
             </Grid>
 
-            {pagination.total > pagination.limit && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            {maxPages > 1 && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 2 }}>
                 <Pagination
-                  count={Math.ceil(pagination.total / pagination.limit)}
-                  page={Math.floor(pagination.offset / pagination.limit) + 1}
+                  count={maxPages}
+                  page={pagination.currentPage}
                   onChange={handlePageChange}
                   color="primary"
+                  size="large"
                 />
               </Box>
             )}

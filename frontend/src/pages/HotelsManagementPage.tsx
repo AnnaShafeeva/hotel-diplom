@@ -26,6 +26,7 @@ import {
   Card,
   CardContent,
   CardActions,
+  Pagination,
 } from '@mui/material';
 import {
   Add,
@@ -34,7 +35,6 @@ import {
   ArrowBack,
   Hotel,
   Visibility,
-  Delete,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -56,16 +56,35 @@ const HotelsManagementPage: React.FC = () => {
   const [selectedHotel, setSelectedHotel] = useState<HotelType | null>(null);
   const [editLoading, setEditLoading] = useState(false);
 
+  const [pagination, setPagination] = useState({
+    limit: 10,
+    offset: 0,
+    currentPage: 1,
+    hasMore: true
+  });
+
   useEffect(() => {
     fetchHotels();
-  }, []);
+  }, [pagination.offset]);
 
   const fetchHotels = async () => {
     setLoading(true);
     setError(null);
     try {
-      const hotelsData = await hotelService.getHotels({ limit: 100, offset: 0 });
+      const hotelsData = await hotelService.getHotels({
+        limit: pagination.limit,
+        offset: pagination.offset
+      });
+
       setHotels(hotelsData);
+
+      const hasMore = hotelsData.length === pagination.limit;
+
+      setPagination(prev => ({
+        ...prev,
+        hasMore
+      }));
+
     } catch (err: any) {
       setError(err.response?.data?.message || 'Ошибка при загрузке отелей');
       console.error('Error fetching hotels:', err);
@@ -137,6 +156,16 @@ const HotelsManagementPage: React.FC = () => {
     navigate(`/admin/edit-hotel-room/${roomId}`);
   };
 
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+    const newOffset = (page - 1) * pagination.limit;
+    setPagination(prev => ({
+      ...prev,
+      offset: newOffset,
+      currentPage: page
+    }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const getImageUrl = (imagePath: string) => {
     if (!imagePath) return '';
     if (imagePath.startsWith('http')) return imagePath;
@@ -148,6 +177,8 @@ const HotelsManagementPage: React.FC = () => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('ru-RU');
   };
+
+  const maxPages = pagination.hasMore ? pagination.currentPage + 1 : pagination.currentPage;
 
   if (!user || user.role !== 'admin') {
     return (
@@ -196,6 +227,19 @@ const HotelsManagementPage: React.FC = () => {
         </Alert>
       )}
 
+      {hotels.length > 0 && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Загружено отелей: {hotels.length}
+          </Typography>
+          {maxPages > 1 && (
+            <Typography variant="body2" color="text.secondary">
+              Страница {pagination.currentPage}
+            </Typography>
+          )}
+        </Box>
+      )}
+
       {loading ? (
         <Box display="flex" justifyContent="center" sx={{ my: 8 }}>
           <CircularProgress size={60} />
@@ -218,87 +262,101 @@ const HotelsManagementPage: React.FC = () => {
           </Button>
         </Paper>
       ) : (
-        <TableContainer component={Paper} elevation={3}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Название</TableCell>
-                <TableCell>Описание</TableCell>
-                <TableCell>Дата создания</TableCell>
-                <TableCell>Дата обновления</TableCell>
-                <TableCell align="center">Действия</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {hotels.map((hotel) => (
-                <TableRow key={hotel.id} hover>
-                  <TableCell>
-                    <Typography variant="body2" color="text.secondary">
-                      {hotel.id.substring(0, 8)}...
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography fontWeight="medium">
-                      {hotel.title}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      {hotel.description || 'Описание отсутствует'}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {formatDate(hotel.createdAt)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {formatDate(hotel.updatedAt)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleEditHotel(hotel)}
-                        title="Редактировать отель"
-                        size="small"
-                      >
-                        <Edit />
-                      </IconButton>
-                      <IconButton
-                        color="info"
-                        onClick={() => handleViewRooms(hotel)}
-                        title="Просмотреть номера"
-                        size="small"
-                      >
-                        <Visibility />
-                      </IconButton>
-                      <IconButton
-                        color="secondary"
-                        onClick={() => handleAddHotelRoom(hotel.id)}
-                        title="Добавить номер"
-                        size="small"
-                      >
-                        <MeetingRoom />
-                      </IconButton>
-                    </Box>
-                  </TableCell>
+        <>
+          <TableContainer component={Paper} elevation={3}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Название</TableCell>
+                  <TableCell>Описание</TableCell>
+                  <TableCell>Дата создания</TableCell>
+                  <TableCell>Дата обновления</TableCell>
+                  <TableCell align="center">Действия</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {hotels.map((hotel) => (
+                  <TableRow key={hotel.id} hover>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {hotel.id.substring(0, 8)}...
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography fontWeight="medium">
+                        {hotel.title}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        {hotel.description || 'Описание отсутствует'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {formatDate(hotel.createdAt)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {formatDate(hotel.updatedAt)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                        <IconButton
+                          color="primary"
+                          onClick={() => handleEditHotel(hotel)}
+                          title="Редактировать отель"
+                          size="small"
+                        >
+                          <Edit />
+                        </IconButton>
+                        <IconButton
+                          color="info"
+                          onClick={() => handleViewRooms(hotel)}
+                          title="Просмотреть номера"
+                          size="small"
+                        >
+                          <Visibility />
+                        </IconButton>
+                        <IconButton
+                          color="secondary"
+                          onClick={() => handleAddHotelRoom(hotel.id)}
+                          title="Добавить номер"
+                          size="small"
+                        >
+                          <MeetingRoom />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {maxPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <Pagination
+                count={maxPages}
+                page={pagination.currentPage}
+                onChange={handlePageChange}
+                color="primary"
+                size="large"
+              />
+            </Box>
+          )}
+        </>
       )}
 
       <Dialog

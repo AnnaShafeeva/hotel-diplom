@@ -51,7 +51,13 @@ export const hotelService = {
   },
 
   async getHotels(params: { limit: number; offset: number; title?: string }): Promise<Hotel[]> {
-    const response = await api.get<Hotel[]>('/admin/hotels', { params });
+    const response = await api.get<Hotel[]>('/admin/hotels', { 
+      params: {
+        ...params,
+        limit: params.limit || 10,
+        offset: params.offset || 0
+      }
+    });
     return response.data.map(hotel => ({
       id: hotel.id,
       title: hotel.title,
@@ -108,8 +114,4 @@ export const hotelService = {
 
     return response.json();
   },
-
-  // async deleteHotelRoom(id: string): Promise<void> {
-  //   console.log('Delete room:', id);
-  // }
 };

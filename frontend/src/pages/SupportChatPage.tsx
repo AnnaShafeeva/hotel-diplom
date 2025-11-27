@@ -8,9 +8,9 @@ import {
   List,
   ListItem,
   Chip,
-  Divider,
   Alert,
   CircularProgress,
+  Pagination,
 } from '@mui/material';
 import { Send as SendIcon } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
@@ -28,6 +28,13 @@ const SupportChatPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [pagination, setPagination] = useState({
+    limit: 10,
+    offset: 0,
+    currentPage: 1,
+    hasMore: true
+  });
 
   const markMessagesAsRead = async () => {
     if (!selectedRequest || !user) return;
@@ -63,7 +70,7 @@ const SupportChatPage: React.FC = () => {
     return () => {
       websocketService.disconnect();
     };
-  }, []);
+  }, [pagination.offset]);
 
   useEffect(() => {
     if (selectedRequest) {
@@ -95,8 +102,19 @@ const SupportChatPage: React.FC = () => {
   const loadSupportRequests = async () => {
     try {
       setIsLoading(true);
-      const requests = await supportService.getClientSupportRequests();
+      const requests = await supportService.getClientSupportRequests({
+        limit: pagination.limit,
+        offset: pagination.offset
+      });
       setSupportRequests(requests);
+
+      const hasMore = requests.length === pagination.limit;
+
+      setPagination(prev => ({
+        ...prev,
+        hasMore
+      }));
+
       if (requests.length > 0 && !selectedRequest) {
         setSelectedRequest(requests[0]);
       }
@@ -129,6 +147,7 @@ const SupportChatPage: React.FC = () => {
       setSelectedRequest(request);
       setNewMessage('');
       setError(null);
+      setPagination(prev => ({ ...prev, offset: 0, currentPage: 1 }));
     } catch (err: any) {
       setError('Ошибка создания обращения');
     }
@@ -147,6 +166,15 @@ const SupportChatPage: React.FC = () => {
     }
   };
 
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+    const newOffset = (page - 1) * pagination.limit;
+    setPagination(prev => ({
+      ...prev,
+      offset: newOffset,
+      currentPage: page
+    }));
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -154,6 +182,8 @@ const SupportChatPage: React.FC = () => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('ru-RU');
   };
+
+  const maxPages = pagination.hasMore ? pagination.currentPage + 1 : pagination.currentPage;
 
   if (isLoading) {
     return (
@@ -176,7 +206,7 @@ const SupportChatPage: React.FC = () => {
       )}
 
       <Box display="flex" gap={2} sx={{ height: '600px' }}>
-        <Paper sx={{ width: 300, p: 2 }}>
+        <Paper sx={{ width: 300, p: 2, display: 'flex', flexDirection: 'column' }}>
           <Typography variant="h6" gutterBottom>
             Мои обращения
           </Typography>
@@ -191,31 +221,46 @@ const SupportChatPage: React.FC = () => {
           >
             Новое обращение
           </Button>
-          <List>
-            {supportRequests.map((request) => (
-              <ListItem
-                key={request.id}
-                button
-                selected={selectedRequest?.id === request.id}
-                onClick={() => setSelectedRequest(request)}
-                sx={{ flexDirection: 'column', alignItems: 'flex-start' }}
-              >
-                <Box display="flex" justifyContent="space-between" width="100%">
-                  <Typography variant="body2">
-                    {formatDate(request.createdAt)}
-                  </Typography>
-                  <Chip
-                    label={request.isActive ? 'Активно' : 'Закрыто'}
-                    color={request.isActive ? 'primary' : 'default'}
-                    size="small"
-                  />
-                </Box>
-                {request.hasNewMessages && (
-                  <Chip label="Новые" color="secondary" size="small" sx={{ mt: 0.5 }} />
-                )}
-              </ListItem>
-            ))}
-          </List>
+
+          <Box sx={{ flex: 1, overflow: 'auto', mb: 2 }}>
+            <List>
+              {supportRequests.map((request) => (
+                <ListItem
+                  key={request.id}
+                  button
+                  selected={selectedRequest?.id === request.id}
+                  onClick={() => setSelectedRequest(request)}
+                  sx={{ flexDirection: 'column', alignItems: 'flex-start' }}
+                >
+                  <Box display="flex" justifyContent="space-between" width="100%">
+                    <Typography variant="body2">
+                      {formatDate(request.createdAt)}
+                    </Typography>
+                    <Chip
+                      label={request.isActive ? 'Активно' : 'Закрыто'}
+                      color={request.isActive ? 'primary' : 'default'}
+                      size="small"
+                    />
+                  </Box>
+                  {request.hasNewMessages && (
+                    <Chip label="Новые" color="secondary" size="small" sx={{ mt: 0.5 }} />
+                  )}
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+
+          {maxPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Pagination
+                count={maxPages}
+                page={pagination.currentPage}
+                onChange={handlePageChange}
+                color="primary"
+                size="small"
+              />
+            </Box>
+          )}
         </Paper>
 
         <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>

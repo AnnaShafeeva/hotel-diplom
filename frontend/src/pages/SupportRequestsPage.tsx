@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Pagination,
 } from '@mui/material';
 import { Visibility as VisibilityIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
@@ -34,15 +35,33 @@ const SupportRequestsPage: React.FC = () => {
   const [selectedRequest, setSelectedRequest] = useState<SupportRequest | null>(null);
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
 
+  const [pagination, setPagination] = useState({
+    limit: 10,
+    offset: 0,
+    currentPage: 1,
+    hasMore: true
+  });
+
   useEffect(() => {
     loadSupportRequests();
-  }, []);
+  }, [pagination.offset]);
 
   const loadSupportRequests = async () => {
     try {
       setIsLoading(true);
-      const requests = await supportService.getManagerSupportRequests({ isActive: true });
+      const requests = await supportService.getManagerSupportRequests({
+        isActive: true,
+        limit: pagination.limit,
+        offset: pagination.offset
+      });
       setSupportRequests(requests);
+
+      const hasMore = requests.length === pagination.limit;
+
+      setPagination(prev => ({
+        ...prev,
+        hasMore
+      }));
     } catch (err: any) {
       setError('Ошибка загрузки обращений');
     } finally {
@@ -74,9 +93,21 @@ const SupportRequestsPage: React.FC = () => {
     navigate(`/manager/support/chat/${request.id}`);
   };
 
+  const handlePageChange = (event: React.ChangeEvent<unknown>, page: number) => {
+    const newOffset = (page - 1) * pagination.limit;
+    setPagination(prev => ({
+      ...prev,
+      offset: newOffset,
+      currentPage: page
+    }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('ru-RU');
   };
+
+  const maxPages = pagination.hasMore ? pagination.currentPage + 1 : pagination.currentPage;
 
   if (isLoading) {
     return (
@@ -96,6 +127,19 @@ const SupportRequestsPage: React.FC = () => {
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
           {error}
         </Alert>
+      )}
+
+      {supportRequests.length > 0 && (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Загружено обращений: {supportRequests.length}
+          </Typography>
+          {maxPages > 1 && (
+            <Typography variant="body2" color="text.secondary">
+              Страница {pagination.currentPage}
+            </Typography>
+          )}
+        </Box>
       )}
 
       <TableContainer component={Paper}>
@@ -170,6 +214,17 @@ const SupportRequestsPage: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {maxPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <Pagination
+            count={maxPages}
+            page={pagination.currentPage}
+            onChange={handlePageChange}
+            color="primary"
+          />
+        </Box>
+      )}
 
       <Dialog
         open={closeDialogOpen}
