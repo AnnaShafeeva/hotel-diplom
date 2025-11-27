@@ -60,6 +60,7 @@ Fullstack приложение для поиска и бронирования �
 - **Порт**: 27017
 
 ## 📁 Структура проекта
+```text
 hotel-diplom/
 ├── backend/ # NestJS бэкенд приложение
 │ ├── src/
@@ -94,6 +95,7 @@ hotel-diplom/
 ├── docker-compose.yml # Production Docker Compose
 ├── docker-compose.dev.yml # Development Docker Compose
 └── README.md # Эта документация
+```
 
 ## 🚀 Быстрый старт
 
