@@ -8,6 +8,10 @@ import {
   SearchRoomsParams,
 } from './interfaces/hotel-room.interface';
 import { ProcessedImage } from './file-upload.service';
+import {
+  Reservation,
+  ReservationDocument,
+} from '../reservations/schemas/reservation.schema';
 
 @Injectable()
 export class HotelRoomsService implements IHotelRoomService {
@@ -16,6 +20,8 @@ export class HotelRoomsService implements IHotelRoomService {
     private readonly hotelRoomModel: Model<HotelRoomDocument>,
     @InjectModel(Hotel.name)
     private readonly hotelModel: Model<HotelDocument>,
+    @InjectModel(Reservation.name)
+    private readonly reservationModel: Model<ReservationDocument>,
   ) {}
 
   async create(data: any): Promise<HotelRoom> {
@@ -74,20 +80,13 @@ export class HotelRoomsService implements IHotelRoomService {
 
     if (hotel) {
       filter.hotel = new Types.ObjectId(hotel);
-      console.log('Applied hotel filter:', hotel);
     }
-
-    console.log('FILTER:', filter);
 
     if (!userRole || userRole === 'client') {
       filter.isEnabled = true;
-      console.log('Applied isEnabled=true filter for public access');
     } else if (isEnabled !== undefined) {
       filter.isEnabled = isEnabled;
-      console.log('Applied isEnabled filter:', isEnabled);
     }
-
-    console.log('FINAL FILTER:', filter);
 
     const rooms = await this.hotelRoomModel
       .find(filter)
@@ -97,11 +96,31 @@ export class HotelRoomsService implements IHotelRoomService {
       .exec();
 
     console.log('FOUND ROOMS COUNT:', rooms.length);
-
     if (startDate && endDate) {
       console.log('Date filter applied:', { startDate, endDate });
-      console.log('Date filtering not implemented yet, returning all rooms');
+
+      const availableRooms: HotelRoomDocument[] = [];
+      const searchStartDate = new Date(startDate);
+      const searchEndDate = new Date(endDate);
+
+      for (const room of rooms) {
+        const isAvailable = await this.isRoomAvailable(
+          room._id.toString(),
+          searchStartDate,
+          searchEndDate,
+        );
+
+        if (isAvailable) {
+          availableRooms.push(room);
+        }
+      }
+
+      console.log(
+        `✅ After filtering: ${availableRooms.length} available rooms`,
+      );
+      return availableRooms as HotelRoom[];
     }
+
     return rooms.filter((room) => room._id != null);
   }
 
@@ -126,5 +145,25 @@ export class HotelRoomsService implements IHotelRoomService {
 
     if (!room || !room._id) throw new NotFoundException('Room not found');
     return room;
+  }
+
+  private async isRoomAvailable(
+    roomId: string,
+    dateStart: Date,
+    dateEnd: Date,
+  ): Promise<boolean> {
+    const overlappingReservations = await this.reservationModel
+      .find({
+        roomId: new Types.ObjectId(roomId),
+        $or: [
+          {
+            dateStart: { $lte: dateEnd },
+            dateEnd: { $gte: dateStart },
+          },
+        ],
+      })
+      .exec();
+
+    return overlappingReservations.length === 0;
   }
 }
