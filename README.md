@@ -111,8 +111,11 @@ cd hotel-diplom
 
 # Запуск в development режиме
 docker-compose -f docker-compose.dev.yml up --build
+```
 
 ### Ручная установка
+
+```bash
 # Запуск MongoDB
 docker run -d -p 27017:27017 --name mongo -v mongo-data:/data/db mongo
 
@@ -125,6 +128,7 @@ npm run start:dev
 cd frontend
 npm install
 npm run dev
+```
 
 ### 🌐 Доступ к приложению
 После успешного запуска приложение доступно по адресам:
