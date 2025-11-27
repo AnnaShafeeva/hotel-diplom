@@ -75,24 +75,44 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </>
                 )}
                 {user?.role === 'manager' && (
-                  <Button
-                    color="inherit"
-                    component={Link}
-                    to="/users"
-                    variant={location.pathname === '/users' ? 'outlined' : 'text'}
-                  >
-                    Пользователи
-                  </Button>
+                  <>
+                    <Button
+                      color="inherit"
+                      component={Link}
+                      to="/users"
+                      variant={location.pathname === '/users' ? 'outlined' : 'text'}
+                    >
+                      Пользователи
+                    </Button>
+                    <Button
+                      color="inherit"
+                      component={Link}
+                      to="/manager/support"
+                      variant={location.pathname === '/manager/support' ? 'outlined' : 'text'}
+                    >
+                      Обращения
+                    </Button>
+                  </>
                 )}
                 {user?.role === 'client' && (
-                  <Button
-                    color="inherit"
-                    component={Link}
-                    to="/my-reservations"
-                    variant={location.pathname === '/my-reservations' ? 'outlined' : 'text'}
-                  >
-                    Мои брони
-                  </Button>
+                  <>
+                    <Button
+                      color="inherit"
+                      component={Link}
+                      to="/my-reservations"
+                      variant={location.pathname === '/my-reservations' ? 'outlined' : 'text'}
+                    >
+                      Мои брони
+                    </Button>
+                    <Button
+                      color="inherit"
+                      component={Link}
+                      to="/support"
+                      variant={location.pathname === '/support' ? 'outlined' : 'text'}
+                    >
+                      Поддержка
+                    </Button>
+                  </>
                 )}
                 <Typography variant="body1" sx={{ mx: 1 }}>
                   #{user?.name}

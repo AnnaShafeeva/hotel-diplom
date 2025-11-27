@@ -18,6 +18,9 @@ import AddHotelPage from './pages/AddHotelPage';
 import AddHotelRoomPage from './pages/AddHotelRoomPage';
 import HotelsManagementPage from './pages/HotelsManagementPage';
 import EditHotelRoomPage from './pages/EditHotelRoomPage';
+import SupportChatPage from './pages/SupportChatPage';
+import SupportRequestsPage from './pages/SupportRequestsPage';
+import ManagerSupportChatPage from './pages/ManagerSupportChatPage';
 
 const theme = createTheme({
   palette: {
@@ -51,6 +54,9 @@ function App() {
                 <Route path="/admin/add-hotel-room" element={<AddHotelRoomPage />} />
                 <Route path="/admin/add-hotel-room/:hotelId" element={<AddHotelRoomPage />} />
                 <Route path="/admin/edit-hotel-room/:roomId" element={<EditHotelRoomPage />} />
+                <Route path="/support" element={<SupportChatPage />} />
+                <Route path="/manager/support" element={<SupportRequestsPage />} />
+                <Route path="/manager/support/chat/:requestId" element={<ManagerSupportChatPage />} />
               </Routes>
             </Layout>
           </Router>
